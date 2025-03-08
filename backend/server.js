@@ -4,23 +4,18 @@ const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const authRoutes = require("./routes/authRoutes");
-const db = require("./db"); // Importando a conexão com o banco
+const db = require("./db"); // Importando o pool de conexões
+const path = require("path"); // Para trabalhar com caminhos de arquivos
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Middleware para servir arquivos estáticos
+app.use(express.static(path.join(__dirname, "public")));
+
 // Middleware
 app.use(express.json());
 app.use(cors());
-
-// Conexão com o banco de dados
-db.connect((err) => {
-  if (err) {
-    console.error("Erro ao conectar ao banco de dados:", err);
-    return;
-  }
-  console.log("Conectado ao banco de dados MySQL.");
-});
 
 // Função para gerar o token JWT
 const generateToken = (userId, permissao) => {
@@ -81,7 +76,6 @@ app.get("/private", verifyToken, (req, res) => {
 
 // Rotas de autenticação
 app.use("/auth", authRoutes);
-
 
 // Iniciar servidor
 app.listen(PORT, () => {

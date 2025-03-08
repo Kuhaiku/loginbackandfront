@@ -2,6 +2,8 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const db = require("../db"); // Conexão com o banco de dados
+const verifyToken = require("../middleware/authMiddleware");
+
 const router = express.Router();
 
 // Rota de cadastro
@@ -14,6 +16,7 @@ router.post("/register", async (req, res) => {
       "SELECT id FROM usuarios WHERE email = ?",
       [email]
     );
+
     if (existingUser.length > 0) {
       return res.status(400).json({ error: "E-mail já cadastrado." });
     }
@@ -40,24 +43,26 @@ router.post("/login", async (req, res) => {
   const { email, senha } = req.body;
 
   try {
-    const [user] = await db.promise().query(
+    const [rows] = await db.promise().query(
       "SELECT * FROM usuarios WHERE email = ?",
       [email]
     );
 
-    if (user.length === 0) {
+    if (rows.length === 0) {
       return res.status(400).json({ error: "E-mail ou senha incorretos." });
     }
 
-    const validPassword = await bcrypt.compare(senha, user[0].senha);
+    const user = rows[0]; // Capturando o primeiro usuário
+
+    const validPassword = await bcrypt.compare(senha, user.senha);
     if (!validPassword) {
       return res.status(400).json({ error: "E-mail ou senha incorretos." });
     }
 
     const token = jwt.sign(
-      { id: user[0].id, permissao: user[0].permissao },
+      { id: user.id, permissao: user.permissao },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "1h", algorithm: "HS256" } // Melhor segurança no token
     );
 
     res.json({ message: "Login bem-sucedido!", token });
@@ -67,27 +72,23 @@ router.post("/login", async (req, res) => {
   }
 });
 
-module.exports = router;
-//
-const verifyToken = require("../middleware/authMiddleware");
-
 // Rota protegida: obter informações do usuário autenticado
 router.get("/user", verifyToken, async (req, res) => {
-    try {
-        const [user] = await db.promise().query(
-            "SELECT id, nome, email, permissao FROM usuarios WHERE id = ?",
-            [req.userId]
-        );
+  try {
+    const [rows] = await db.promise().query(
+      "SELECT id, nome, email, permissao FROM usuarios WHERE id = ?",
+      [req.userId]
+    );
 
-        if (user.length === 0) {
-            return res.status(404).json({ error: "Usuário não encontrado." });
-        }
-
-        res.json(user[0]);
-    } catch (error) {
-        console.error("Erro ao buscar usuário:", error);
-        res.status(500).json({ error: "Erro interno do servidor." });
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Usuário não encontrado." });
     }
+
+    res.json(rows[0]);
+  } catch (error) {
+    console.error("Erro ao buscar usuário:", error);
+    res.status(500).json({ error: "Erro interno do servidor." });
+  }
 });
 
 module.exports = router;
