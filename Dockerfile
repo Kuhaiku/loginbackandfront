@@ -4,16 +4,16 @@ FROM node:18
 # Define o diretório de trabalho dentro do container
 WORKDIR /app
 
-# Copia os arquivos do projeto para dentro do container
+# Copia os arquivos package.json e package-lock.json primeiro (se existir)
 COPY package*.json ./
 
 # Instala as dependências do projeto
 RUN npm install
 
-# Copia o restante dos arquivos para dentro do container
-COPY . .
+# Copia todos os arquivos do projeto para dentro do container
+COPY . . 
 
-# Expõe a porta que o servidor irá rodar
+# Expõe a porta do servidor
 EXPOSE 3000
 
 # Comando para iniciar o servidor
