@@ -6,6 +6,9 @@ services:
     container_name: node_app
     ports:
       - "3000:3000"
+    volumes:
+      - .:/app  # Monta a pasta local dentro do container
+      - /app/node_modules  # Garante que os módulos instalados dentro do container sejam usados
     environment:
       - DB_HOST=db
       - DB_PORT=3306
