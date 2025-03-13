@@ -1,35 +1,35 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  db:
-    image: mysql:8
-    container_name: mysql_container
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: login_db
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-
-  backend:
+  app:
     build: .
-    container_name: backend_container
-    restart: always
-    depends_on:
-      - db
+    container_name: node_app
     ports:
       - "3000:3000"
     environment:
-      DB_HOST: db
-      DB_USER: user
-      DB_PASSWORD: password
-      DB_NAME: login_db
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=mysql
+      - DB_PASSWORD=Raposo88125442@@
+      - DB_NAME=raposobl
+      - SESSION_SECRET=9667ad0489bdb1965310dca6937fdcc873d4a34ec4d789f4e697261f82a734db
+      - JWT_SECRET=a3e2442f0b91d8b03bfe92e3ba1c9f8a897f1fd739a70373d78b3c70c10f68b9
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Raposo88125442@@
+      MYSQL_DATABASE: raposobl
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: Raposo88125442@@
+    ports:
+      - "3307:3306"
     volumes:
-      - .:/app
+      - mysql_data:/var/lib/mysql
 
 volumes:
   mysql_data:
